@@ -1,0 +1,170 @@
+{
+  "name": "02 - Intraday Report",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_REGIONAL_CHAT_ID",
+        "text": "={{ $json.message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "a1f9184a-a3f3-427a-9e91-371a098ddf51",
+      "name": "Send a text message",
+      "webhookId": "71d18146-1fb1-4c02-b50b-e75b15594526"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10,12,14,16 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "56d5fc4c-4481-4246-b057-e33b9cd6e69c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://api:8000/internal/reports/summary",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "REPLACE_WITH_INTERNAL_API_KEY"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "054c1c36-ddc4-48a5-ba40-1e1d45b40ba5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $json.data ?? [];\n\nconst rank = {\n  CRITICAL: 2,\n  WATCH: 1,\n  NORMAL: 0\n};\n\nconst attention = rows\n  .filter(r =>\n    [\"WATCH\", \"CRITICAL\"].includes(r.overall_status)\n  )\n  .sort((a, b) => {\n    const statusDiff =\n      (rank[b.overall_status] ?? 0) -\n      (rank[a.overall_status] ?? 0);\n\n    if (statusDiff !== 0) {\n      return statusDiff;\n    }\n\n    return String(a.drop_point_name ?? \"\")\n      .localeCompare(\n        String(b.drop_point_name ?? \"\")\n      );\n  });\n\n\nif (attention.length === 0) {\n  return [\n    {\n      json: {\n        has_alert: false,\n        alert_count: 0,\n        message: \"\"\n      }\n    }\n  ];\n}\n\n\n// ============================================================\n// HELPERS\n// ============================================================\n\nfunction money(value) {\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return \"-\";\n  }\n\n  return (\n    \"Rp\" +\n    Math.round(Number(value))\n      .toLocaleString(\"id-ID\")\n  );\n}\n\n\nfunction pct(value) {\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return \"-\";\n  }\n\n  return (\n    Number(value).toFixed(2) +\n    \"%\"\n  );\n}\n\n\nfunction hours(value) {\n  if (\n    value === null ||\n    value === undefined\n  ) {\n    return \"-\";\n  }\n\n  return Number(value).toFixed(2);\n}\n\n\nfunction num(value) {\n  return Number(value ?? 0);\n}\n\n\nfunction statusIcon(status) {\n  if (status === \"CRITICAL\") {\n    return \"🔴\";\n  }\n\n  if (status === \"WATCH\") {\n    return \"🟠\";\n  }\n\n  return \"🟢\";\n}\n\n\nfunction unhealthy(status) {\n  return [\n    \"WATCH\",\n    \"CRITICAL\"\n  ].includes(status);\n}\n\n\n// ============================================================\n// BUILD DROP POINT SECTIONS\n// ============================================================\n\nconst sections = attention.map(dp => {\n\n  // ==========================================================\n  // PRIORITY\n  // ==========================================================\n\n  const priorities = [];\n\n\n  if (unhealthy(dp.revenue_status)) {\n    priorities.push({\n      status: dp.revenue_status,\n      text:\n        `Pendapatan: pencapaian ` +\n        `${pct(dp.revenue_achievement_pct)} ` +\n        `dari target ${money(dp.revenue_target)}. ` +\n        `Review gap terhadap target dan ` +\n        `seller penyumbang gap.`\n    });\n  }\n\n\n  if (unhealthy(dp.seller_status)) {\n    priorities.push({\n      status: dp.seller_status,\n      text:\n        `Seller: ${num(dp.watch_seller)} watch dan ` +\n        `${num(dp.critical_seller)} critical. ` +\n        `Tindak lanjuti seller yang ` +\n        `membutuhkan perhatian.`\n    });\n  }\n\n\n  if (unhealthy(dp.parcel_status)) {\n    priorities.push({\n      status: dp.parcel_status,\n      text:\n        `Paket di DP: ` +\n        `${num(dp.parcel_at_dp)} paket masih di DP, ` +\n        `${num(dp.parcel_over_24h)} >24 jam, ` +\n        `terlama ${hours(dp.oldest_parcel_hours)} jam. ` +\n        `Prioritaskan paket aging tertua agar ` +\n        `segera keluar ke tahap berikutnya.`\n    });\n  }\n\n\n  if (unhealthy(dp.delivery_status)) {\n    priorities.push({\n      status: dp.delivery_status,\n      text:\n        `Pengiriman: on-time ` +\n        `${pct(dp.on_time_rate_pct)} ` +\n        `vs SLA ${pct(dp.delivery_sla_target_pct)}, ` +\n        `${num(dp.overdue_delivery)} overdue dan ` +\n        `${num(dp.failed_delivery)} gagal kirim. ` +\n        `Prioritaskan shipment overdue dan ` +\n        `penyebab keterlambatan.`\n    });\n  }\n\n\n  priorities.sort(\n    (a, b) =>\n      (rank[b.status] ?? 0) -\n      (rank[a.status] ?? 0)\n  );\n\n\n  // ==========================================================\n  // RESPONSIBILITY\n  // ==========================================================\n\n  const responsibilities = [];\n\n\n  if (\n    unhealthy(dp.revenue_status) ||\n    unhealthy(dp.seller_status)\n  ) {\n    responsibilities.push(\n      `Seller / Pendapatan -> ` +\n      `Unit Seller -> PIC Seller terkait`\n    );\n  }\n\n\n  if (unhealthy(dp.parcel_status)) {\n    responsibilities.push(\n      `Paket (${dp.parcel_status}) -> ` +\n      `Unit Outbound -> ` +\n      `PIC Outbound - ${dp.drop_point_name}`\n    );\n  }\n\n\n  if (unhealthy(dp.delivery_status)) {\n    responsibilities.push(\n      `Pengiriman (${dp.delivery_status}) -> ` +\n      `Unit Delivery -> ` +\n      `PIC Delivery - ${dp.drop_point_name}`\n    );\n  }\n\n\n  const manager =\n    dp.manager_name ?? \"-\";\n\n\n  const returnDelivery =\n    dp.return_delivery ??\n    dp.returned_delivery ??\n    0;\n\n\n  // ==========================================================\n  // MESSAGE\n  // ==========================================================\n\n  return [\n    `${statusIcon(dp.overall_status)} ` +\n      `${dp.drop_point_name} - ${dp.overall_status}`,\n\n    `Manager: ${manager}`,\n\n    \"\",\n\n    \"💰 Pendapatan\",\n    `${money(dp.revenue)} / ${money(dp.revenue_target)}`,\n    `Pencapaian: ${pct(dp.revenue_achievement_pct)}`,\n    `Status: ${dp.revenue_status}`,\n\n    \"\",\n\n    \"🏪 Seller\",\n    `Aktif: ` +\n      `${num(dp.active_seller)}/` +\n      `${num(dp.active_seller_target)}`,\n    `Watch: ${num(dp.watch_seller)} | ` +\n      `Critical: ${num(dp.critical_seller)}`,\n    `Status: ${dp.seller_status}`,\n\n    \"\",\n\n    \"📦 Paket di DP\",\n    `Masuk MTD: ${num(dp.parcel_in_mtd)} | ` +\n      `Keluar MTD: ${num(dp.parcel_out_mtd)}`,\n    `Di DP: ${num(dp.parcel_at_dp)}`,\n    `12-24 jam: ${num(dp.parcel_12_24h)} | ` +\n      `>24 jam: ${num(dp.parcel_over_24h)}`,\n    `Terlama: ` +\n      `${hours(dp.oldest_parcel_hours)} jam`,\n    `Rata-rata di DP: ` +\n      `${hours(dp.avg_dp_hours)} jam`,\n    `Persentase keluar: ` +\n      `${pct(dp.parcel_out_pct)}`,\n    `Status: ${dp.parcel_status}`,\n\n    \"\",\n\n    \"🚚 Pengiriman\",\n    `Completed: ${num(dp.completed_delivery)} | ` +\n      `In Transit: ${num(dp.in_transit_delivery)}`,\n    `On Time: ${num(dp.on_time_delivery)} | ` +\n      `Late: ${num(dp.late_delivery)}`,\n    `Failed: ${num(dp.failed_delivery)} | ` +\n      `Return: ${num(returnDelivery)} | ` +\n      `Overdue: ${num(dp.overdue_delivery)}`,\n    `On-time: ${pct(dp.on_time_rate_pct)} ` +\n      `vs SLA ${pct(dp.delivery_sla_target_pct)}`,\n    `Status: ${dp.delivery_status}`,\n\n    \"\",\n\n    \"👤 Penanggung Jawab\",\n\n    ...(\n      responsibilities.length\n        ? responsibilities.map(\n            (item, index) =>\n              `${index + 1}. ${item}`\n          )\n        : [\n            \"Tidak ada area yang \" +\n            \"membutuhkan eskalasi.\"\n          ]\n    ),\n\n    `Eskalasi keseluruhan: ${manager}`,\n\n    \"\",\n\n    \"🎯 Prioritas\",\n\n    ...(\n      priorities.length\n        ? priorities.map(\n            (item, index) =>\n              `${index + 1}. ` +\n              `[${item.status}] ` +\n              `${item.text}`\n          )\n        : [\n            \"Tidak ada tindakan khusus.\"\n          ]\n    )\n\n  ].join(\"\\n\");\n});\n\n\n// ============================================================\n// FINAL TELEGRAM MESSAGES\n// ============================================================\n\nconst intro = [\n  \"📊 INTRADAY OPERATIONAL REPORT\",\n  \"\",\n  `Drop Point perlu perhatian: ${attention.length}`\n].join(\"\\n\");\n\nconst MAX_LENGTH = 3500;\nconst messages = [];\nlet current = intro;\n\nfor (const section of sections) {\n  const addition = \"\\n\\n------------------------------\\n\\n\" + section;\n  if (current.length + addition.length > MAX_LENGTH && current.length > 0) {\n    messages.push(current);\n    current = [\n      \"📊 INTRADAY OPERATIONAL REPORT - LANJUTAN\",\n      \"\",\n      section\n    ].join(\"\\n\");\n  } else {\n    current += addition;\n  }\n}\n\nif (current) messages.push(current);\n\nreturn messages.map((message, index) => ({\n  json: {\n    has_alert: true,\n    alert_count: attention.length,\n    message,\n    part: index + 1,\n    total_parts: messages.length\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2756ee0c-3dfd-4491-b907-cf63bde6ebe7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6de897ed-b2d4-4843-92e0-708c13e5cba8",
+              "leftValue": "={{ $json.has_alert }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "3e436600-7a36-4cea-af53-e90c1f5166f3",
+      "name": "If"
+    }
+  ],
+  "connections": {
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false
+}

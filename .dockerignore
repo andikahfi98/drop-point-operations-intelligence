@@ -1,0 +1,12 @@
+.venv
+.git
+.gitignore
+__pycache__
+*.pyc
+.pytest_cache
+.env
+AKUN_DAN_PASSWORD_DEMO.txt
+data
+docs
+sql
+n8n

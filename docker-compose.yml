@@ -1,0 +1,90 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: drop_point_ops_postgres
+
+    environment:
+      POSTGRES_DB: drop_point_ops
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d drop_point_ops"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: drop_point_ops_api
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: drop_point_ops
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SIMULATION_API_KEY: ${SIMULATION_API_KEY}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_FAST_MODEL: ${LLM_FAST_MODEL}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_REGIONAL_CHAT_IDS: ${TELEGRAM_REGIONAL_CHAT_IDS}
+      TELEGRAM_REGIONAL_USER_ID: ${TELEGRAM_REGIONAL_USER_ID}
+      
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.40.7
+    container_name: drop_point_ops_n8n
+
+    environment:
+      GENERIC_TIMEZONE: Asia/Jakarta
+      TZ: Asia/Jakarta
+      N8N_WEBHOOK_URL: "${N8N_WEBHOOK_URL}"
+      N8N_PROXY_HOPS: "${N8N_PROXY_HOPS}"
+      N8N_HOST: localhost
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: http
+
+    ports:
+      - "5678:5678"
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+    depends_on:
+      api:
+        condition: service_started
+
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+
+

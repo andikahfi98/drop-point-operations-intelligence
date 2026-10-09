@@ -1,0 +1,151 @@
+{
+  "name": "05 - Telegram AI Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_REGIONAL_CHAT_ID",
+        "text": "={{ $json.answer.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "044455a4-cdda-4b53-bf86-52272f85d6dd",
+      "name": "Send a text message",
+      "webhookId": "dfb30a1e-7ab8-494c-ae06-9c350e5b1c04"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.body.message.chat.id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.body.message.text }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "REPLACE_WITH_INTERNAL_API_KEY"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "700b77d9-dfcf-453a-8b0b-692532000308",
+      "name": "Fast Chat"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bb697a08-d9fd-4ec5-9468-c5395a422fd7",
+              "leftValue": "={{ $json.body.message.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "44ac18a0-cd49-4210-86cb-e7ee05c1f262",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-ops",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "e5bffee6-e642-42cc-a02c-63531c777b05",
+      "name": "Webhook",
+      "webhookId": "8a9028bf-95dd-48ce-bf8c-fcb0c4a2756b"
+    }
+  ],
+  "connections": {
+    "Fast Chat": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Fast Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false
+}

@@ -1,0 +1,36 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+AKUN_DAN_PASSWORD_DEMO.txt
+*.pem
+*.key
+
+# Local data, backups, and raw automation exports
+backup/
+data/
+n8n/*.raw.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Runtime files
+*.log
+*.sqlite
+*.db
+*.dump
+
+# Machine-specific notes and superseded local baseline
+CARA_TEST_AI_TELEGRAM_DENGAN_NGROK.txt
+Cara_Masuk_PostgreSQL_PowerShell.txt
+PRD_Drop_Point_Operations_Intelligence_v0.2.txt
+

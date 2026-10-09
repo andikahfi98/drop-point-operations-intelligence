@@ -1,0 +1,165 @@
+{
+  "name": "04 - Critical Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "2-57/5 8-16 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7dc2083b-d6a3-4eb1-9935-3d319a85995b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/internal/alerts/evaluate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "REPLACE_WITH_INTERNAL_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "d24423b1-8a52-4927-a3f2-81f9311aedf8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst alerts = Array.isArray($json.alerts)\n  ? $json.alerts\n  : [];\n\nif (alerts.length === 0) {\n  return [{\n    json: {\n      has_alert: false,\n      alert_count: 0,\n      message: \"\"\n    }\n  }];\n}\n\n// ================================================\n// HELPERS\n// ================================================\n\nconst rank = {\n  CRITICAL: 2,\n  WATCH: 1,\n  NORMAL: 0\n};\n\nfunction num(value) {\n  if (value == null) return \"-\";\n  return Number(value).toLocaleString(\"id-ID\");\n}\n\nfunction pct(value) {\n  if (value == null) return \"-\";\n  return Number(value).toFixed(2) + \"%\";\n}\n\nfunction hours(value) {\n  if (value == null) return \"-\";\n  return Number(value).toFixed(2) + \" jam\";\n}\n\nfunction icon(status) {\n  if (status === \"CRITICAL\") return \"🔴\";\n  if (status === \"WATCH\") return \"🟠\";\n  return \"🟢\";\n}\n\nfunction unhealthy(status) {\n  return [\"WATCH\", \"CRITICAL\"].includes(status);\n}\n\nconst components = [\n  {\n    key: \"REVENUE\",\n    label: \"Pendapatan\",\n    field: \"revenue_status\"\n  },\n  {\n    key: \"SELLER\",\n    label: \"Seller\",\n    field: \"seller_status\"\n  },\n  {\n    key: \"PARCEL\",\n    label: \"Paket di DP\",\n    field: \"parcel_status\"\n  },\n  {\n    key: \"DELIVERY\",\n    label: \"Pengiriman\",\n    field: \"delivery_status\"\n  }\n];\n\n// ================================================\n// ONE MESSAGE PER CRITICAL DROP POINT\n// ================================================\n\nreturn alerts.map(a => {\n\n  const manager = a.manager_name ?? \"-\";\n\n  const responsibilities =\n    Array.isArray(a.responsibility)\n      ? a.responsibility\n      : [];\n\n  const reasons =\n    Array.isArray(a.reasons)\n      ? a.reasons\n      : [];\n\n  const problems = components\n    .map(c => ({\n      ...c,\n      status: a[c.field]\n    }))\n    .filter(c => unhealthy(c.status))\n    .sort(\n      (x, y) =>\n        (rank[y.status] ?? 0) -\n        (rank[x.status] ?? 0)\n    );\n\n  const lines = [\n    \"🚨 CRITICAL OPERATIONAL ALERT\",\n    \"\",\n    `🔴 ${a.drop_point_name} - CRITICAL`,\n    `Perubahan: ${a.previous_status ?? \"UNKNOWN\"} → CRITICAL`,\n    `Manager: ${manager}`,\n    \"\"\n  ];\n\n  // ==============================================\n  // COMPONENT DETAILS\n  // ==============================================\n\n  for (const problem of problems) {\n\n    lines.push(\n      `${icon(problem.status)} ${problem.label} - ${problem.status}`\n    );\n\n    switch (problem.key) {\n\n      case \"REVENUE\":\n        lines.push(\n          `Pencapaian: ${pct(a.revenue_achievement_pct)}`,\n          `Expected: ${pct(a.expected_achievement_pct)}`,\n          `Gap: ${pct(a.revenue_gap_pct)}`\n        );\n        break;\n\n      case \"SELLER\":\n        lines.push(\n          `Normal: ${num(a.normal_seller)}`,\n          `Watch: ${num(a.watch_seller)}`,\n          `Critical: ${num(a.critical_seller)}`,\n          `Total monitored: ${num(a.total_monitored_seller)}`\n        );\n        break;\n\n      case \"PARCEL\":\n        lines.push(\n          `Di DP: ${num(a.parcel_at_dp)}`,\n          `>24 jam: ${num(a.parcel_over_24h)}`,\n          `Paket terlama: ${hours(a.oldest_parcel_hours)}`,\n          `Rata-rata di DP: ${hours(a.avg_dp_hours)}`,\n          `Persentase keluar: ${pct(a.parcel_out_pct)}`\n        );\n        break;\n\n      case \"DELIVERY\":\n        lines.push(\n          `On-time: ${pct(a.on_time_rate_pct)} vs SLA ${pct(a.delivery_sla_target_pct)}`,\n          `Late: ${num(a.late_delivery)}`,\n          `Failed: ${num(a.failed_delivery)}`,\n          `Return: ${num(a.returned_delivery)}`,\n          `Overdue: ${num(a.overdue_delivery)}`\n        );\n        break;\n    }\n\n    // Actual responsibility data from API.\n    const owner = responsibilities.find(\n      r => r.component === problem.key\n    );\n\n    if (owner) {\n      lines.push(\n        `Unit: ${owner.responsible_unit_name ?? \"-\"}`,\n        `PIC: ${owner.responsible_staff_name ?? \"-\"}`\n      );\n    } else {\n      lines.push(\n        \"Penanggung jawab: belum tersedia di mapping\"\n      );\n    }\n\n    lines.push(\"\");\n  }\n\n  // ==============================================\n  // CRITICAL REASONS\n  // ==============================================\n\n  if (reasons.length > 0) {\n    lines.push(\"⚠️ Penyebab CRITICAL\");\n\n    reasons.forEach((reason, index) => {\n      lines.push(`${index + 1}. ${reason}`);\n    });\n\n    lines.push(\"\");\n  }\n\n  // ==============================================\n  // ESCALATION\n  // ==============================================\n\n  lines.push(\n    \"👤 Eskalasi\",\n    `Drop Point Manager: ${manager}`,\n    \"\",\n    \"🎯 Tindak Lanjut\",\n    \"1. Tangani komponen CRITICAL terlebih dahulu.\",\n    \"2. PIC unit terkait melakukan investigasi dan tindak lanjut.\",\n    \"3. Manager memantau penyelesaian serta eskalasi hambatan.\"\n  );\n\n  return {\n    json: {\n      has_alert: true,\n      alert_count: alerts.length,\n      drop_point_id: a.drop_point_id,\n      previous_status: a.previous_status,\n      current_status: a.current_status,\n      message: lines.join(\"\\n\")\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "31c8be2d-6e04-4639-a4dc-0fbc4452279a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "944d4942-f613-4085-94a4-09ecb53e7828",
+              "leftValue": "={{ $json.has_alert }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "1761bc4c-15e1-43dc-929b-b362aac6efbe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_REGIONAL_CHAT_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "aa522af1-db02-423b-b9ab-356f8eecc0f0",
+      "name": "Send a text message",
+      "webhookId": "c0ec56a8-558f-4a51-ad9b-76920c522236"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false
+}

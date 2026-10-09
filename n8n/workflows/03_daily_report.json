@@ -1,0 +1,120 @@
+{
+  "name": "03 - Daily Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 17 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d3ffc439-7889-439a-9d2d-3b2c532cf854",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://api:8000/internal/reports/daily",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "REPLACE_WITH_INTERNAL_API_KEY"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3c9071a3-633c-44e7-9987-a10c4b048069",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst rows = $json.data ?? [];\n\nconst rank = {\n  CRITICAL: 2,\n  WATCH: 1,\n  NORMAL: 0\n};\n\nfunction num(v) {\n  return Number(v ?? 0).toLocaleString(\"id-ID\");\n}\n\nfunction money(v) {\n  if (v == null) return \"-\";\n  return \"Rp\" + Math.round(Number(v)).toLocaleString(\"id-ID\");\n}\n\nfunction pct(v) {\n  if (v == null) return \"-\";\n  return Number(v).toFixed(2) + \"%\";\n}\n\nfunction hours(v) {\n  if (v == null) return \"-\";\n  return Number(v).toFixed(2) + \" jam\";\n}\n\nfunction icon(status) {\n  if (status === \"CRITICAL\") return \"🔴\";\n  if (status === \"WATCH\") return \"🟠\";\n  return \"🟢\";\n}\n\nfunction unhealthy(status) {\n  return [\"WATCH\", \"CRITICAL\"].includes(status);\n}\n\nfunction dailyOnTime(dp) {\n  if (\n    !dp.daily_completed ||\n    dp.daily_on_time_rate_pct == null\n  ) {\n    return \"Belum dapat dihitung\";\n  }\n  return pct(dp.daily_on_time_rate_pct);\n}\n\nfunction sortBySeverity(items) {\n  return items.sort((a, b) => {\n    const difference =\n      (rank[b.overall_status] ?? 0) -\n      (rank[a.overall_status] ?? 0);\n\n    return difference ||\n      String(a.drop_point_name ?? \"\").localeCompare(\n        String(b.drop_point_name ?? \"\")\n      );\n  });\n}\n\n// ============================================================\n// VALIDATE DATA\n// ============================================================\n\nif (rows.length === 0) {\n  return [{\n    json: {\n      message: \"📋 DAILY OPERATIONAL REPORT\\nData belum tersedia.\",\n      total_drop_point: 0,\n      attention_count: 0\n    }\n  }];\n}\n\nconst reportDate = String(rows[0].business_date ?? \"-\");\nconst allDP = sortBySeverity([...rows]);\nconst attention = allDP.filter(dp =>\n  unhealthy(dp.overall_status)\n);\n\n// ============================================================\n// OVERVIEW - ALL DROP POINTS\n// ============================================================\n\nconst overview = allDP.map(dp => [\n  `${icon(dp.overall_status)} ${dp.drop_point_name} - ${dp.overall_status}`,\n  `Manager: ${dp.manager_name ?? \"-\"}`,\n  `Pendapatan hari ini: ${money(dp.daily_revenue)}`,\n  `Seller aktif hari ini: ${num(dp.daily_active_seller)}`,\n  `Paket masuk/keluar: ${num(dp.daily_parcel_in)}/${num(dp.daily_parcel_out)}`,\n  `Di DP: ${num(dp.parcel_at_dp)} | >24 jam: ${num(dp.parcel_over_24h)}`,\n  `On-time MTD: ${pct(dp.mtd_on_time_rate_pct)}`,\n  `Paket: ${dp.parcel_status} | Pengiriman: ${dp.delivery_status}`\n].join(\"\\n\"));\n\n// ============================================================\n// DETAILS - WATCH / CRITICAL\n// ============================================================\n\nconst details = attention.map(dp => {\n  const priorities = [];\n  const responsibility = [];\n  const manager = dp.manager_name ?? \"-\";\n\n  // Parcel\n  if (unhealthy(dp.parcel_status)) {\n    priorities.push({\n      status: dp.parcel_status,\n      text:\n        `Paket di DP: ${num(dp.parcel_at_dp)} masih di DP, ` +\n        `${num(dp.parcel_over_24h)} >24 jam, ` +\n        `terlama ${hours(dp.oldest_parcel_hours)}. ` +\n        `Prioritaskan paket aging tertua dan periksa ` +\n        `hambatan proses keluar DP.`\n    });\n\n    responsibility.push(\n      `Paket (${dp.parcel_status}) → Unit Outbound → PIC Outbound`\n    );\n  }\n\n  // Delivery\n  if (unhealthy(dp.delivery_status)) {\n    priorities.push({\n      status: dp.delivery_status,\n      text:\n        `Pengiriman: on-time MTD ${pct(dp.mtd_on_time_rate_pct)} ` +\n        `vs SLA ${pct(dp.delivery_sla_target_pct)}, ` +\n        `${num(dp.mtd_overdue_delivery)} overdue dan ` +\n        `${num(dp.mtd_failed_delivery)} gagal kirim. ` +\n        `Tindak lanjuti shipment overdue dan kendala delivery.`\n    });\n\n    responsibility.push(\n      `Pengiriman (${dp.delivery_status}) → Unit Delivery → PIC Delivery`\n    );\n  }\n\n  // Seller\n  if (unhealthy(dp.seller_status)) {\n    priorities.push({\n      status: dp.seller_status,\n      text:\n        `Seller: ${num(dp.watch_seller)} WATCH dan ` +\n        `${num(dp.critical_seller)} CRITICAL. ` +\n        `Tindak lanjuti seller yang membutuhkan perhatian.`\n    });\n\n    responsibility.push(\n      `Seller (${dp.seller_status}) → Unit Seller → PIC Seller terkait`\n    );\n  }\n\n  // Revenue pace is informational.\n  // Do not assign severity because daily API does not\n  // provide revenue_status.\n  const gap = dp.revenue_gap_pct;\n\n  const revenueNote =\n    gap != null && Number(gap) < 0\n      ? `Pendapatan tertinggal ${pct(Math.abs(Number(gap)))} dari pace yang diharapkan.`\n      : null;\n\n  priorities.sort(\n    (a, b) =>\n      (rank[b.status] ?? 0) -\n      (rank[a.status] ?? 0)\n  );\n\n  return [\n    `${icon(dp.overall_status)} ${dp.drop_point_name} - ${dp.overall_status}`,\n    `Manager: ${manager}`,\n\n    \"\",\n    \"📅 HARI INI\",\n    `Pendapatan: ${money(dp.daily_revenue)}`,\n    `Target harian: ${money(dp.daily_revenue_target)}`,\n    `Pencapaian: ${pct(dp.daily_revenue_achievement_pct)}`,\n    `Invoice: ${num(dp.daily_invoice)}`,\n    `Seller aktif: ${num(dp.daily_active_seller)}`,\n    `Paket masuk: ${num(dp.daily_parcel_in)} | Keluar: ${num(dp.daily_parcel_out)}`,\n\n    \"\",\n    \"🚚 PENGIRIMAN HARI INI\",\n    `Shipment: ${num(dp.daily_shipment)}`,\n    `Completed: ${num(dp.daily_completed)} | In Transit: ${num(dp.daily_in_transit)}`,\n    `On Time: ${num(dp.daily_on_time)} | Late: ${num(dp.daily_late)}`,\n    `Failed: ${num(dp.daily_failed)} | Return: ${num(dp.daily_returned)}`,\n    `Overdue: ${num(dp.daily_overdue)}`,\n    `On-time hari ini: ${dailyOnTime(dp)}`,\n\n    \"\",\n    \"💰 PENDAPATAN MTD\",\n    `${money(dp.mtd_revenue)} / ${money(dp.monthly_revenue_target)}`,\n    `Pencapaian: ${pct(dp.mtd_revenue_achievement_pct)}`,\n    `Expected: ${pct(dp.expected_achievement_pct)}`,\n    `Gap: ${pct(dp.revenue_gap_pct)}`,\n    ...(revenueNote ? [revenueNote] : []),\n\n    \"\",\n    \"🏪 SELLER\",\n    `Normal: ${num(dp.normal_seller)} | Watch: ${num(dp.watch_seller)} | Critical: ${num(dp.critical_seller)}`,\n    `Status: ${dp.seller_status}`,\n\n    \"\",\n    \"📦 PAKET DI DP\",\n    `Di DP: ${num(dp.parcel_at_dp)}`,\n    `>24 jam: ${num(dp.parcel_over_24h)}`,\n    `Terlama: ${hours(dp.oldest_parcel_hours)}`,\n    `Rata-rata di DP: ${hours(dp.avg_dp_hours)}`,\n    `Persentase keluar: ${pct(dp.parcel_out_pct)}`,\n    `Status: ${dp.parcel_status}`,\n\n    \"\",\n    \"🚚 PENGIRIMAN MTD\",\n    `Completed: ${num(dp.mtd_completed_delivery)} | In Transit: ${num(dp.mtd_in_transit_delivery)}`,\n    `Late: ${num(dp.mtd_late_delivery)} | Failed: ${num(dp.mtd_failed_delivery)}`,\n    `Return: ${num(dp.mtd_returned_delivery)} | Overdue: ${num(dp.mtd_overdue_delivery)}`,\n    `On-time: ${pct(dp.mtd_on_time_rate_pct)} vs SLA ${pct(dp.delivery_sla_target_pct)}`,\n    `Status: ${dp.delivery_status}`,\n\n    \"\",\n    \"👤 PENANGGUNG JAWAB\",\n    ...(\n      responsibility.length\n        ? responsibility.map((r, i) => `${i + 1}. ${r}`)\n        : [\"Tidak ada area dengan status WATCH/CRITICAL.\"]\n    ),\n    `Eskalasi keseluruhan: ${manager}`,\n\n    \"\",\n    \"🎯 PRIORITAS\",\n    ...(\n      priorities.length\n        ? priorities.map(\n            (p, i) => `${i + 1}. [${p.status}] ${p.text}`\n          )\n        : [\"Tidak ada tindakan khusus.\"]\n    )\n\n  ].join(\"\\n\");\n});\n\n// ============================================================\n// BUILD MESSAGE AND SPLIT IF TOO LONG\n// ============================================================\n\nconst intro = [\n  \"📋 DAILY OPERATIONAL REPORT\",\n  `Tanggal simulasi: ${reportDate}`,\n  \"\",\n  `Total Drop Point: ${rows.length}`,\n  `Perlu perhatian: ${attention.length}`,\n  \"\",\n  \"RINGKASAN SEMUA DROP POINT\",\n  \"\",\n  overview.join(\"\\n\\n\")\n].join(\"\\n\");\n\nconst sections = [];\n\nif (attention.length > 0) {\n  for (const detail of details) {\n    sections.push(detail);\n  }\n} else {\n  sections.push(\"✅ Semua Drop Point dalam kondisi NORMAL.\");\n}\n\n// Conservative limit to avoid Telegram message-length errors\nconst MAX_LENGTH = 3500;\nconst messages = [];\n\nlet current = intro;\n\nfor (const section of sections) {\n  const addition =\n    \"\\n\\n------------------------------\\n\\n\" +\n    section;\n\n  if (\n    current.length + addition.length > MAX_LENGTH &&\n    current.length > 0\n  ) {\n    messages.push(current);\n\n    current = [\n      \"📋 DAILY OPERATIONAL REPORT - LANJUTAN\",\n      `Tanggal simulasi: ${reportDate}`,\n      \"\",\n      section\n    ].join(\"\\n\");\n\n  } else {\n    current += addition;\n  }\n}\n\nif (current) {\n  messages.push(current);\n}\n\n// n8n Telegram node sends one message for each output item\nreturn messages.map((message, index) => ({\n  json: {\n    message,\n    part: index + 1,\n    total_parts: messages.length,\n    total_drop_point: rows.length,\n    attention_count: attention.length\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "3ff92cf6-d807-40c5-b9fc-a07ca0a91dec",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_REGIONAL_CHAT_ID",
+        "text": "={{ $json.message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "40dfe3a7-aefa-4292-8fc2-0d7caf0d4137",
+      "name": "Send a text message",
+      "webhookId": "16c12f0e-ea88-4dea-afe7-07a1f8724ff0"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "active": false
+}
