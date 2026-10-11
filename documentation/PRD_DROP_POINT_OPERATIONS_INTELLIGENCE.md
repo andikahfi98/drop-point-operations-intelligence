@@ -87,6 +87,8 @@ Jadwal workflow 01–04 mengikuti konfigurasi n8n yang sudah ada dan tidak diuba
 
 Insight laporan dibangun dari status DP, paket tertahan, SLA pengiriman, pace pendapatan, dan seller yang perlu perhatian. AI memprioritaskan sinyal dan menyusun tindak lanjut singkat tanpa menghitung ulang KPI. Jika AI tidak tersedia, saran berbasis aturan tetap dikirim. Laporan dan jawaban bot hanya menggunakan DP dalam lingkup akses yang berlaku.
 
+Alur pesan, format terbaru, dan cakupan uji lokal didokumentasikan di [Telegram dan reporting](TELEGRAM_DAN_REPORTING.md).
+
 ## 7. Domain data dan definisi
 
 Entitas inti mencakup Drop Point, unit, staf/PIC, seller, kurir, shipment, revenue ongkir, serta target seller dan pengiriman. `core.fact_revenue` merekam biaya kirim per invoice, bukan nilai barang atau COD. Seller adalah pengirim; receiver adalah pihak penerima. Origin DP menangani titik masuk paket, destination DP menangani sisi tujuan/last mile.

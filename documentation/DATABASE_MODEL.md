@@ -54,10 +54,8 @@ Responsibility is unit-first, then staff/PIC:
 - Regional scope is stored in `app.user_region_access`.
 - Passwords are seeded separately by migration `061`; plaintext passwords are never stored.
 
-## Apply order
+## Migration baseline
 
-1. Stop API and n8n.
-2. Apply `060_final_expedition_domain.sql`.
-3. Seed temporary manager passwords with `061_seed_manager_passwords.sql`.
-4. Run `062_verify_final_expedition_domain.sql`.
-5. Keep API/n8n off until the application layer is updated to Seller/Staff terminology.
+The running local prototype has already applied the final expedition domain migration `060`, manager password seed `061`, origin/destination classification fix `066`, session storage `068`, and daily pulse `069`. Verification scripts `062` and `067` check the corresponding domain changes. Application changes historically called patches `065` are part of the current codebase, not a separate SQL migration file.
+
+For a fresh database, follow the numbered SQL scripts and their verification steps in order; do not run `061_seed_manager_passwords.sql` without supplying temporary passwords through its documented psql variables. A public clone does not include the private source workbook or populated PostgreSQL volume, so a clean installation also needs its own permitted sample data. See [the runbook](PANDUAN_MENJALANKAN_PROJECT.md) for the local service sequence.

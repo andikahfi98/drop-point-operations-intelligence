@@ -57,7 +57,7 @@ Ganti `DOMAIN-ANDA.ngrok-free.dev` dengan domain yang sama persis seperti `N8N_W
 .\.venv\Scripts\python.exe scripts\configure_webhook.py --check
 ```
 
-Hasil yang diharapkan: `Webhook URL matches .env: True`, `Last error: none`. Untuk penggunaan rutin, `--check` saja cukup.
+Hasil yang diharapkan: `Webhook URL matches .env: True` dan `Pending updates: 0`. Kolom `Last error` dapat menyimpan kegagalan lama meskipun webhook terbaru berhasil; periksa eksekusi webhook di n8n bila ada keraguan. Untuk penggunaan rutin, `--check` saja cukup.
 
 4. Dari akun Telegram **Regional Manager yang telah didaftarkan**, buka `https://t.me/drop_point_ops_bot` dan kirim pertanyaan seperti “Ringkas kondisi semua DP hari ini”. Bot tidak diperuntukkan bagi akun DP Manager dan tidak memakai kode penghubung.
 
@@ -75,7 +75,7 @@ npm run dev
 
 `npm ci` cukup saat pertama kali atau setelah dependensi berubah. Selanjutnya `npm run dev` saja. Buka `http://127.0.0.1:5173/` di browser. Vite mengirim permintaan `/api` ke FastAPI lokal.
 
-Gunakan email demo pada `frontend/DEMO_ACCOUNTS.md`. Password hanya tersimpan pada `AKUN_DAN_PASSWORD_DEMO.txt` di folder utama **laptop lokal**; file itu tidak ada di GitHub. Jika diminta mengganti password pada login pertama, selesaikan lalu masuk kembali. Sesi browser tersimpan di memori dan hilang saat halaman dimuat ulang.
+Gunakan email demo pada [DEMO_ACCOUNTS.md](DEMO_ACCOUNTS.md). Password hanya tersimpan pada `AKUN_DAN_PASSWORD_DEMO.txt` di folder utama **laptop lokal**; file itu tidak ada di GitHub. Jika diminta mengganti password pada login pertama, selesaikan lalu masuk kembali. Sesi browser tersimpan di memori dan hilang saat halaman dimuat ulang.
 
 - **Regional Manager:** `Overview`, `Drop Points`, `Laporan`; dapat membuka detail DP sesuai grant region.
 - **DP Manager:** `DP Saya`, `Laporan`; hanya melihat DP miliknya. Pada detail DP terdapat tab Operasi, Paket, Pengiriman, Seller & Pendapatan, PIC Seller, serta Tim & Tanggung Jawab.
@@ -101,7 +101,7 @@ Endpoint `/internal/reports/summary?include_insights=true` dan `/internal/report
 
 Pada bot Telegram, Regional Manager dapat mengetik `Beri insight dan solusi dari laporan harian` atau `Analisis laporan untuk DP [nama]`. Bot membaca laporan terbaru hanya untuk DP dalam grant regional. Kata `harian` atau `hari ini` memilih laporan harian; selain itu bot memakai ringkasan intraday. Ini memakai data simulasi lokal, bukan pencarian web.
 
-Pesan laporan intraday dan harian diawali ringkasan seluruh DP serta total operasional, lalu rincian DP yang perlu perhatian dikirim pada bagian berikutnya. Alert menampilkan komponen kritis, angka pendukung, PIC, dan tindak lanjut. Setiap pesan diberi label data simulasi; ikon menunjukkan status dan jenis metrik. Format sumber berada di `n8n/formatters/`, dan `scripts/sync_report_formatters.py` menyalinnya ke contoh workflow publik.
+Pesan laporan intraday dan harian diawali ringkasan seluruh DP serta total operasional, lalu rincian DP yang perlu perhatian dikirim pada bagian berikutnya. Alert menampilkan komponen kritis, angka pendukung, PIC, dan tindak lanjut. Setiap pesan diberi label data simulasi; ikon menunjukkan status dan jenis metrik. Format sumber berada di `n8n/formatters/`, dan `scripts/sync_report_formatters.py` menyalinnya ke contoh workflow publik. Lihat [Telegram dan reporting](TELEGRAM_DAN_REPORTING.md) untuk alur, contoh, dan batas pengujian.
 
 Jika memasang format pada instalasi n8n lain, perbarui node `Code in JavaScript` pada **workflow yang sudah ada** dengan formatter yang sesuai. Simpan dan publikasikan workflow, lalu periksa pratinjau node Code tanpa menjalankan node Telegram. Pertahankan `Schedule Trigger`, URL laporan, credential, dan chat tujuan. File JSON di GitHub adalah contoh aman dan tidak memperbarui workflow aktif secara otomatis.
 
@@ -117,7 +117,7 @@ Untuk pembaruan lokal melalui CLI, `scripts/prepare_local_n8n_report_update.py` 
 | Bot tidak menjawab | ngrok aktif, `http://127.0.0.1:5678/healthz`, hasil `configure_webhook.py --check`, chat Telegram terdaftar |
 | URL ngrok berubah | Perbarui `N8N_WEBHOOK_URL` di `.env`, jalankan `docker compose up -d --no-deps n8n`, lalu jalankan `configure_webhook.py` |
 | Laporan tidak masuk | Periksa status workflow 02–04 dan eksekusi n8n; pastikan laptop/Docker menyala pada jam jadwal |
-| Insight tampil sebagai `INSIGHT OPERASIONAL` | Periksa koneksi penyedia AI dan konfigurasi `LLM_API_KEY`, `LLM_BASE_URL`, serta model lokal; laporan tetap memakai saran berbasis aturan |
+| Insight operasional memakai saran umum | Periksa koneksi penyedia AI dan konfigurasi `LLM_API_KEY`, `LLM_BASE_URL`, serta model lokal; laporan tetap memakai saran berbasis aturan |
 
 Tes lokal yang tersedia:
 
@@ -144,6 +144,6 @@ Menghentikan Docker/ngrok membuat bot tidak dapat menerima pesan, meskipun URL d
 2. Instal Docker Desktop, Python, Node.js, ngrok, serta buat bot Telegram dan akun penyedia LLM.
 3. Repositori publik **tidak** berisi workbook sumber `data/`, backup, database Docker yang sudah terisi, atau password demo. Sediakan data contoh milik Anda dan terapkan migrasi SQL sesuai urutannya sebelum menjalankan sistem penuh. File `061_seed_manager_passwords.sql` memerlukan password sementara sebagai variabel psql dan menyimpannya hanya sebagai hash.
 4. Sambungkan ulang credential Telegram serta placeholder pada contoh workflow n8n, lalu aktifkan workflow setelah API/data siap.
-5. Jalankan langkah 1–5 di atas. Contoh migrasi dan model data ada di `sql/` dan `DATABASE_MODEL.md`.
+5. Jalankan langkah 1–5 di atas. Contoh migrasi dan model data ada di `sql/` dan [DATABASE_MODEL.md](DATABASE_MODEL.md).
 
 Instalasi bersih belum menjadi proses satu perintah karena workbook sumber dan seed demo yang dapat dipublikasikan belum tersedia. GitHub Pages kelak dapat menayangkan frontend statis, tetapi FastAPI dan PostgreSQL tetap membutuhkan hosting HTTPS terpisah. Lihat [PRD](PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md) untuk cakupan, keamanan, dan langkah menuju produksi.

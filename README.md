@@ -2,7 +2,7 @@
 
 Studi kasus portofolio untuk pemantauan ekspedisi berbasis **PostgreSQL, FastAPI, React, n8n, dan Telegram AI**. Sistem menggabungkan ringkasan regional, detail enam Drop Point, laporan terjadwal, alert, dan tanya jawab operasional. Prototipe ini berjalan **lokal dengan data simulasi**; ini bukan sistem produksi.
 
-![Cuplikan Drop Point Operations Intelligence](PORTOFOLIO_01_Studi_Kasus.png)
+![Cuplikan Drop Point Operations Intelligence](documentation/images/PORTOFOLIO_01_Studi_Kasus.png)
 
 ## Apa yang tersedia
 
@@ -14,17 +14,17 @@ Studi kasus portofolio untuk pemantauan ekspedisi berbasis **PostgreSQL, FastAPI
 
 KPI utama dihitung dari data terstruktur oleh SQL/Python. Pada laporan, AI memilih prioritas dan menyarankan tindak lanjut dari sinyal yang sudah dihitung; bila penyedia AI tidak tersedia, aturan operasional tetap memberi insight dan tindakan. AI tidak membuat angka KPI sendiri. Regional Manager juga dapat bertanya kepada bot, misalnya `Beri insight dan solusi dari laporan harian` atau `Analisis laporan untuk DP [nama]`. Telegram diakses langsung lewat bot, bukan halaman website.
 
-Fitur insight sudah dipasang pada workflow 02–03 di instalasi lokal yang digunakan untuk proyek ini. Untuk instalasi lain, contoh JSON di repo tidak mengubah workflow aktif secara otomatis; ikuti [panduan operasional](PANDUAN_MENJALANKAN_PROJECT.md#insight-dan-solusi-dari-laporan).
+Fitur insight sudah dipasang pada workflow 02–03 di instalasi lokal yang digunakan untuk proyek ini. Untuk instalasi lain, contoh JSON di repo tidak mengubah workflow aktif secara otomatis; ikuti [panduan operasional](documentation/PANDUAN_MENJALANKAN_PROJECT.md#insight-dan-solusi-dari-laporan).
 
 ## Arsitektur
 
-![Arsitektur sistem](PORTOFOLIO_03_Arsitektur_Sistem.png)
+![Arsitektur sistem](documentation/images/PORTOFOLIO_03_Arsitektur_Sistem.png)
 
 PostgreSQL, FastAPI, dan n8n berjalan di Docker lokal. Frontend React/Vite berjalan pada komputer pengembang. Ngrok memberi HTTPS sementara/berdomain akun untuk webhook Telegram; laptop dan layanan lokal tetap harus menyala. GitHub Pages hanya bisa menayangkan frontend statis—API dan PostgreSQL perlu hosting terpisah jika kelak dibuka untuk publik.
 
 ## Jalankan pada instalasi lokal yang sudah berisi data
 
-Instruksi di bawah ini ditujukan untuk laptop proyek yang **sudah memiliki database demo, `.env`, dan credential n8n**. Panduan lengkap beserta troubleshooting ada di [PANDUAN_MENJALANKAN_PROJECT.md](PANDUAN_MENJALANKAN_PROJECT.md).
+Instruksi di bawah ini ditujukan untuk laptop proyek yang **sudah memiliki database demo, `.env`, dan credential n8n**. Panduan lengkap beserta troubleshooting ada di [panduan menjalankan proyek](documentation/PANDUAN_MENJALANKAN_PROJECT.md).
 
 **1. Nyalakan Docker Desktop**, lalu di PowerShell:
 
@@ -59,7 +59,7 @@ npm ci
 npm run dev
 ```
 
-Buka `http://127.0.0.1:5173/`. `npm ci` diperlukan pada pemasangan pertama/ketika dependensi berubah; untuk hari berikutnya cukup `npm run dev`. Email demo tercantum di [frontend/DEMO_ACCOUNTS.md](frontend/DEMO_ACCOUNTS.md). Password demo ada pada `AKUN_DAN_PASSWORD_DEMO.txt` di laptop pemilik proyek dan **tidak** dimasukkan ke GitHub. Beberapa akun akan diminta mengganti password dan login ulang.
+Buka `http://127.0.0.1:5173/`. `npm ci` diperlukan pada pemasangan pertama/ketika dependensi berubah; untuk hari berikutnya cukup `npm run dev`. Email demo tercantum di [daftar akun demo](documentation/DEMO_ACCOUNTS.md). Password demo ada pada `AKUN_DAN_PASSWORD_DEMO.txt` di laptop pemilik proyek dan **tidak** dimasukkan ke GitHub. Beberapa akun akan diminta mengganti password dan login ulang.
 
 | Antarmuka | Alamat |
 | --- | --- |
@@ -74,7 +74,7 @@ Buka `http://127.0.0.1:5173/`. `npm ci` diperlukan pada pemasangan pertama/ketik
 2. Siapkan Docker Desktop, Python, Node.js, ngrok, bot Telegram, dan penyedia LLM kompatibel API.
 3. Siapkan data contoh dan migrasi SQL di `sql/`. Workbook sumber `data/`, volume PostgreSQL, backup, password demo, dan credential n8n **tidak disertakan** dalam repo publik. Karena itu, clone baru belum dapat langsung menampilkan enam DP tanpa provisioning data.
 4. Contoh workflow yang aman untuk dibagikan ada di `n8n/workflows/`. Semua diimpor tidak aktif, tanpa credential, dan berisi placeholder untuk internal key/chat ID. Isi dan sambungkan ulang sebelum mengaktifkannya.
-5. Setelah database dan credential siap, ikuti [panduan operasional](PANDUAN_MENJALANKAN_PROJECT.md).
+5. Setelah database dan credential siap, ikuti [panduan operasional](documentation/PANDUAN_MENJALANKAN_PROJECT.md).
 
 Repositori ini memprioritaskan keterbacaan arsitektur dan kode untuk portofolio. Bootstrap data demo yang sepenuhnya publik adalah pekerjaan lanjutan.
 
@@ -88,17 +88,19 @@ Repositori ini memprioritaskan keterbacaan arsitektur dan kode untuk portofolio.
 | `n8n/workflows/` | Ekspor workflow publik yang disanitasi |
 | `n8n/formatters/` | Sumber format pesan Telegram untuk laporan intraday, harian, dan alert |
 | `tests/` | Uji integrasi autentikasi dan batas akses |
-| `docs/portfolio/` | Sumber gambar portofolio yang dapat diedit |
-| `PORTOFOLIO_*.png` | Enam gambar siap dibagikan |
+| `documentation/` | Panduan, PRD, model data, dokumentasi Telegram, dan sumber portofolio |
+| `documentation/images/PORTOFOLIO_*.png` | Enam gambar siap dibagikan |
 
 ## Dokumentasi dan gambar portofolio
 
-- [Panduan lengkap menjalankan sistem](PANDUAN_MENJALANKAN_PROJECT.md)
-- [PRD terbaru](PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md)
-- [Model database](DATABASE_MODEL.md)
-- [Endpoint dashboard dan akses](docs/AUTH_DASHBOARD_API.md)
-- [01 — Studi kasus](PORTOFOLIO_01_Studi_Kasus.png) · [02 — Proses](PORTOFOLIO_02_Proses_Operasional.png) · [03 — Arsitektur](PORTOFOLIO_03_Arsitektur_Sistem.png)
-- [04 — Dashboard regional](PORTOFOLIO_04_Dashboard_Regional.png) · [05 — Detail DP](PORTOFOLIO_05_Detail_Drop_Point.png) · [06 — Otomasi & AI](PORTOFOLIO_06_Automasi_dan_AI.png)
+- [Indeks dokumentasi](documentation/README.md) — peta semua panduan dan gambar.
+- [Panduan lengkap menjalankan sistem](documentation/PANDUAN_MENJALANKAN_PROJECT.md)
+- [PRD terbaru](documentation/PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md)
+- [Model database](documentation/DATABASE_MODEL.md)
+- [Endpoint dashboard dan akses](documentation/AUTH_DASHBOARD_API.md)
+- [Telegram, laporan, dan AI](documentation/TELEGRAM_DAN_REPORTING.md)
+- [01 — Studi kasus](documentation/images/PORTOFOLIO_01_Studi_Kasus.png) · [02 — Proses](documentation/images/PORTOFOLIO_02_Proses_Operasional.png) · [03 — Arsitektur](documentation/images/PORTOFOLIO_03_Arsitektur_Sistem.png)
+- [04 — Dashboard regional](documentation/images/PORTOFOLIO_04_Dashboard_Regional.png) · [05 — Detail DP](documentation/images/PORTOFOLIO_05_Detail_Drop_Point.png) · [06 — Otomasi & AI](documentation/images/PORTOFOLIO_06_Automasi_dan_AI.png)
 
 Rancangan layar yang dapat diedit juga tersedia di [Figma](https://www.figma.com/design/IXMuveVYrGq41skubzCxwl). Gambar dashboard pada repo berasal dari QA aplikasi lokal dan menampilkan data simulasi.
 
@@ -113,4 +115,4 @@ Dengan API dan PostgreSQL lokal aktif:
 
 Tes mencakup login, ganti password, akses lintas DP, chart, filter, enam tab detail, laporan, dan tampilan ponsel. Sebelum deployment publik, tambahkan rate limiting login, reset password, pengelolaan secret, data demo yang dapat dipublikasikan, serta hosting HTTPS terpisah untuk API/database.
 
-Logo J&T Express dipakai pada prototipe visual ini; sumber berkas logo tercatat di [frontend/README.md](frontend/README.md). Semua metrik yang terlihat pada screenshot adalah simulasi.
+Logo J&T Express dipakai pada prototipe visual ini; sumber berkas logo tercatat di [dokumentasi frontend](documentation/FRONTEND.md). Semua metrik yang terlihat pada screenshot adalah simulasi.

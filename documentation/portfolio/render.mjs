@@ -13,7 +13,7 @@ const missing = await page.evaluate(() => [...document.images].filter((image) =>
 if (missing.length) throw new Error(`Missing images: ${missing.join(', ')}`);
 const names = ['01_Studi_Kasus', '02_Proses_Operasional', '03_Arsitektur_Sistem', '04_Dashboard_Regional', '05_Detail_Drop_Point', '06_Automasi_dan_AI'];
 for (let index = 0; index < names.length; index++) {
-  const target = path.join(root, `PORTOFOLIO_${names[index]}.png`);
+  const target = path.join(root, 'documentation', 'images', `PORTOFOLIO_${names[index]}.png`);
   await page.locator(`#slide-0${index + 1}`).screenshot({ path: target });
   console.log(target);
 }

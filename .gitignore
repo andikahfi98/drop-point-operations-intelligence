@@ -10,6 +10,7 @@ AKUN_DAN_PASSWORD_DEMO.txt
 backup/
 data/
 n8n/*.raw.json
+documentation/local/
 
 # Python
 .venv/
@@ -28,9 +29,4 @@ dist/
 *.sqlite
 *.db
 *.dump
-
-# Machine-specific notes and superseded local baseline
-CARA_TEST_AI_TELEGRAM_DENGAN_NGROK.txt
-Cara_Masuk_PostgreSQL_PowerShell.txt
-PRD_Drop_Point_Operations_Intelligence_v0.2.txt
 
