@@ -376,7 +376,12 @@ async def fast_chat(chat_id: int, message: str):
         report = get_daily_operational_report() if period == "daily" else get_summary()
         selected_ids = set(explicit_dp) if explicit_dp else allowed_ids
         rows = [row for row in report.get("data", []) if row["drop_point_id"] in selected_ids]
-        scope = rows[0]["drop_point_name"] if len(selected_ids) == 1 and rows else "DP dalam akses regional"
+        if len(selected_ids) == 1 and rows:
+            scope = rows[0]["drop_point_name"]
+        elif explicit_dp:
+            scope = f"{len(rows)} DP yang dipilih"
+        else:
+            scope = f"{len(rows)} DP dalam akses regional"
         analysis = await analyze_report(rows, period)
         answer = format_report_analysis(
             analysis, period=period, scope=scope,

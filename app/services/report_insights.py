@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+from datetime import date
 
 from openai import AsyncOpenAI
 
@@ -12,6 +13,19 @@ from openai import AsyncOpenAI
 logger = logging.getLogger(__name__)
 
 _BAD_ACTION_TERMS = re.compile(r"\b(?:stok|sku|diskon|cogs|harga kompetitor)\b", re.I)
+_INSIGHT_TITLES = {
+    "critical_dps": "Status kritis",
+    "watch_dps": "DP perlu perhatian",
+    "parcel_aging": "Paket tertahan",
+    "delivery_sla": "SLA pengiriman",
+    "revenue_pace": "Pendapatan",
+    "seller_attention": "Seller",
+    "stable_operations": "Kondisi operasional",
+}
+_MONTHS_ID = (
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+)
 
 
 def _number(value) -> float | None:
@@ -39,9 +53,9 @@ def _name(row) -> str:
 
 
 def _names(rows) -> str:
-    names = [_name(row) for row in rows[:2]]
-    if len(rows) > 2:
-        names.append(f"{len(rows) - 2} DP lain")
+    names = [_name(row) for row in rows[:6]]
+    if len(rows) > 6:
+        names.append(f"{len(rows) - 6} DP lain")
     return ", ".join(names)
 
 
@@ -237,16 +251,30 @@ async def analyze_report(rows: list[dict], period: str) -> dict:
 
 
 def format_report_analysis(analysis: dict, *, period: str, scope: str, business_date=None) -> str:
-    label = "harian" if period == "daily" else "intraday"
-    date_note = f" (tanggal simulasi {business_date})" if business_date else ""
-    heading = f"Insight laporan {label} untuk {scope}{date_note}:"
+    label = "Harian" if period == "daily" else "Intraday"
+    lines = [f"📊 Analisis Laporan {label}"]
+    if business_date:
+        try:
+            day = date.fromisoformat(str(business_date)[:10])
+            date_label = f"{day.day} {_MONTHS_ID[day.month - 1]} {day.year}"
+        except ValueError:
+            date_label = str(business_date)
+        lines.append(f"Data: {date_label} (simulasi)")
+    else:
+        lines.append("Data: simulasi terbaru")
+    lines.append(f"Cakupan: {scope}")
     items = analysis.get("items") or []
     if not items:
-        return heading + "\nData laporan belum tersedia."
-    lines = [heading]
+        return "\n".join([*lines, "", "Data laporan belum tersedia."])
     for index, item in enumerate(items[:3], start=1):
-        lines.append(f"{index}. {item['insight']}")
-        lines.append(f"   Tindakan: {item['action']}")
+        lines.extend([
+            "",
+            f"{index}. {_INSIGHT_TITLES.get(item.get('id'), 'Prioritas operasional')}",
+            f"Temuan: {item['insight']}",
+            f"Langkah: {item['action']}",
+        ])
     if analysis.get("mode") == "rules_fallback":
-        lines.append("Prioritas ini memakai aturan operasional karena analisis AI belum tersedia.")
+        lines.extend(["", "Dasar: data operasional; prioritas memakai aturan karena AI belum tersedia."])
+    elif analysis.get("mode") == "ai":
+        lines.extend(["", "Dasar: data operasional; prioritas dipilih AI."])
     return "\n".join(lines)

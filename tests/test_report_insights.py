@@ -93,9 +93,29 @@ def test_telegram_report_insight_intent_and_reply():
     answer = report_insights.format_report_analysis(
         analysis, period="daily", scope="DP B", business_date="2026-10-10",
     )
-    assert "tanggal simulasi 2026-10-10" in answer
-    assert "Tindakan: Minta PIC Outbound" in answer
-    assert "aturan operasional" in answer
+    assert answer.startswith("📊 Analisis Laporan Harian\nData: 10 Oktober 2026 (simulasi)\nCakupan: DP B")
+    assert "Temuan: DP B memiliki paket tertahan." in answer
+    assert "Langkah: Minta PIC Outbound" in answer
+    assert "prioritas memakai aturan" in answer
+
+
+def test_telegram_ai_reply_uses_clear_sections_and_full_dp_names():
+    rows = [
+        {"drop_point_name": "Drop Point Tangerang", "overall_status": "CRITICAL"},
+        {"drop_point_name": "Drop Point Bekasi", "overall_status": "CRITICAL"},
+        {"drop_point_name": "Drop Point Depok", "overall_status": "CRITICAL"},
+    ]
+    candidate = next(item for item in report_insights.build_candidates(rows, "daily") if item["id"] == "critical_dps")
+    answer = report_insights.format_report_analysis(
+        {"mode": "ai", "items": [candidate]},
+        period="daily", scope="3 DP dalam akses regional", business_date="2026-10-13",
+    )
+    assert "Cakupan: 3 DP dalam akses regional" in answer
+    assert "1. Status kritis\nTemuan:" in answer
+    assert "Drop Point Tangerang, Drop Point Bekasi, Drop Point Depok" in answer
+    assert "DP lain" not in answer
+    assert "Langkah:" in answer
+    assert "prioritas dipilih AI" in answer
 
 
 def test_internal_report_keeps_existing_shape_unless_requested(monkeypatch):
@@ -142,5 +162,6 @@ def test_telegram_report_analysis_filters_to_regional_grants(monkeypatch):
     monkeypatch.setattr(chat_service, "update_last_topic", lambda *_args: None)
     result = asyncio.run(chat_service.fast_chat(1, "Beri insight dan solusi dari laporan harian"))
     assert result["mode"] == "report_insight"
+    assert "Cakupan: DP A" in result["answer"]
     assert "DP A berstatus WATCH" in result["answer"]
     assert "DP B" not in result["answer"]
