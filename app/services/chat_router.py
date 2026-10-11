@@ -14,6 +14,12 @@ from app.services.operational_service import (
 def detect_intent(message: str) -> str:
     text = message.lower().strip()
 
+    if any(word in text for word in ("laporan", "reporting", "report")) and any(x in text for x in [
+        "insight", "analisis", "analisa", "evaluasi", "solusi",
+        "rekomendasi", "saran",
+    ]):
+        return "report_insight"
+
     if any(x in text for x in ["tren", "trend", "7 hari", "14 hari", "pergerakan harian"]):
         return "trend"
     if any(x in text for x in ["hari ini", "today", "arus harian"]):

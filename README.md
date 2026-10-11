@@ -9,10 +9,12 @@ Studi kasus portofolio untuk pemantauan ekspedisi berbasis **PostgreSQL, FastAPI
 - **Dashboard regional:** tren paket 7/14 hari, KPI, prioritas, usia paket, dan perbandingan antar-DP.
 - **Dashboard DP Manager:** enam tab detail—Operasi, Paket, Pengiriman, Seller & Pendapatan, PIC Seller, Tim & Tanggung Jawab—dengan antrean paket dan isu lokasi.
 - **Akses berbasis role:** Regional Manager melihat DP dalam grant region; DP Manager hanya DP miliknya. Pembatasan ditegakkan di API, termasuk saat URL diubah manual.
-- **Otomasi n8n:** generator simulasi, laporan intraday/harian, critical alert, dan webhook Telegram AI.
+- **Otomasi n8n:** generator simulasi, laporan intraday/harian dengan insight dan saran tindakan, critical alert, dan webhook Telegram AI.
 - **Model data logistik:** origin/destination DP, shipment lifecycle, seller, kurir, ongkir, target, serta unit/PIC penanggung jawab.
 
-KPI utama dihitung dari data terstruktur oleh SQL/Python. AI menjelaskan hasil dan menjawab pertanyaan Regional Manager, bukan membuat angka KPI sendiri. Telegram diakses langsung lewat bot, bukan halaman website.
+KPI utama dihitung dari data terstruktur oleh SQL/Python. Pada laporan, AI memilih prioritas dan menyarankan tindak lanjut dari sinyal yang sudah dihitung; bila penyedia AI tidak tersedia, aturan operasional tetap memberi insight dan tindakan. AI tidak membuat angka KPI sendiri. Regional Manager juga dapat bertanya kepada bot, misalnya `Beri insight dan solusi dari laporan harian` atau `Analisis laporan untuk DP [nama]`. Telegram diakses langsung lewat bot, bukan halaman website.
+
+Fitur insight sudah dipasang pada workflow 02–03 di instalasi lokal yang digunakan untuk proyek ini. Untuk instalasi lain, contoh JSON di repo tidak mengubah workflow aktif secara otomatis; ikuti [panduan operasional](PANDUAN_MENJALANKAN_PROJECT.md#insight-dan-solusi-dari-laporan).
 
 ## Arsitektur
 

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.internal_auth import require_internal_key
 from app.services.operational_service import get_daily_operational_report, get_summary
+from app.services.report_insights import analyze_report
 
 
 router = APIRouter(
@@ -14,10 +15,16 @@ router = APIRouter(
 
 
 @router.get("/summary")
-def intraday_summary():
-    return get_summary()
+async def intraday_summary(include_insights: bool = False):
+    report = get_summary()
+    if include_insights:
+        report["analysis"] = await analyze_report(report["data"], "intraday")
+    return report
 
 
 @router.get("/daily")
-def scheduled_daily_report():
-    return get_daily_operational_report()
+async def scheduled_daily_report(include_insights: bool = False):
+    report = get_daily_operational_report()
+    if include_insights:
+        report["analysis"] = await analyze_report(report["data"], "daily")
+    return report

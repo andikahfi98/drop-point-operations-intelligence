@@ -77,12 +77,15 @@ Telegram tidak menjadi menu atau halaman di website.
 | --- | --- | --- |
 | FR-08 | Model shipment dengan origin DP, destination DP, seller, receiver, courier, dan revenue ongkir | Tersedia |
 | FR-09 | Simulator memperbarui aktivitas operasional lokal | Workflow 01 aktif |
-| FR-10 | Laporan intraday dan harian dari endpoint internal | Workflow 02–03 aktif |
+| FR-10 | Laporan intraday dan harian dari endpoint internal, dengan insight serta saran tindakan berbasis data | Tersedia pada workflow lokal 02–03 |
 | FR-11 | Critical alert berdasarkan aturan operasional | Workflow 04 aktif |
 | FR-12 | Bot Telegram menerima webhook dan memanggil chat API yang memakai data berizin | Workflow 05 aktif |
 | FR-13 | KPI utama dihitung deterministik; AI menjelaskan hasil terstruktur | Tersedia |
+| FR-14 | Regional Manager meminta insight dan solusi atas laporan terbaru lewat bot Telegram | Tersedia; API chat lokal telah diuji |
 
 Jadwal workflow 01–04 mengikuti konfigurasi n8n yang sudah ada dan tidak diubah oleh dokumentasi ini. Contoh workflow publik di `n8n/workflows/` dinonaktifkan saat impor sampai credential dan placeholder diisi.
+
+Insight laporan dibangun dari status DP, paket tertahan, SLA pengiriman, pace pendapatan, dan seller yang perlu perhatian. AI memprioritaskan sinyal dan menyusun tindak lanjut singkat tanpa menghitung ulang KPI. Jika AI tidak tersedia, saran berbasis aturan tetap dikirim. Laporan dan jawaban bot hanya menggunakan DP dalam lingkup akses yang berlaku.
 
 ## 7. Domain data dan definisi
 

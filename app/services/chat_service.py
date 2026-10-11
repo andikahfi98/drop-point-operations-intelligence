@@ -10,6 +10,8 @@ from app.db.database import engine
 from app.agents.operations_tools import diagnose_drop_point, overall_summary
 from app.api.auth_routes import Principal, allowed_drop_points
 from app.services.chat_router import detect_intent, build_direct_answer
+from app.services.operational_service import get_summary, get_daily_operational_report
+from app.services.report_insights import analyze_report, format_report_analysis
 
 
 client = AsyncOpenAI(
@@ -368,6 +370,30 @@ async def fast_chat(chat_id: int, message: str):
     if len(explicit_dp) == 1:
         update_current_drop_point(chat_id, explicit_dp[0])
         session["current_drop_point_id"] = explicit_dp[0]
+
+    if intent == "report_insight":
+        period = "daily" if any(term in message.lower() for term in ("harian", "hari ini", "daily")) else "intraday"
+        report = get_daily_operational_report() if period == "daily" else get_summary()
+        selected_ids = set(explicit_dp) if explicit_dp else allowed_ids
+        rows = [row for row in report.get("data", []) if row["drop_point_id"] in selected_ids]
+        scope = rows[0]["drop_point_name"] if len(selected_ids) == 1 and rows else "DP dalam akses regional"
+        analysis = await analyze_report(rows, period)
+        answer = format_report_analysis(
+            analysis, period=period, scope=scope,
+            business_date=report.get("business_date") if period == "daily" else None,
+        )
+        save_message(chat_id, "user", message)
+        save_message(chat_id, "assistant", answer)
+        update_last_topic(chat_id, intent)
+        return {
+            "mode": "report_insight",
+            "intent": intent,
+            "chat_id": chat_id,
+            "current_drop_point_id": session.get("current_drop_point_id"),
+            "answer": answer,
+            "analysis_mode": analysis["mode"],
+            "timing_ms": {"total": round((time.perf_counter() - started_at) * 1000, 2)},
+        }
 
     direct_drop_point_id = None if len(explicit_dp) > 1 else session.get("current_drop_point_id")
 
