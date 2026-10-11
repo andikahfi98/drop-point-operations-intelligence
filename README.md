@@ -101,6 +101,7 @@ Repositori ini memprioritaskan keterbacaan arsitektur dan kode untuk portofolio.
 - [Telegram, laporan, dan AI](documentation/TELEGRAM_DAN_REPORTING.md)
 - [01 — Studi kasus](documentation/images/PORTOFOLIO_01_Studi_Kasus.png) · [02 — Proses](documentation/images/PORTOFOLIO_02_Proses_Operasional.png) · [03 — Arsitektur](documentation/images/PORTOFOLIO_03_Arsitektur_Sistem.png)
 - [04 — Dashboard regional](documentation/images/PORTOFOLIO_04_Dashboard_Regional.png) · [05 — Detail DP](documentation/images/PORTOFOLIO_05_Detail_Drop_Point.png) · [06 — Otomasi & AI](documentation/images/PORTOFOLIO_06_Automasi_dan_AI.png)
+- [Telegram — laporan harian](documentation/images/telegram/TELEGRAM_01_Laporan_Harian.png) · [intraday](documentation/images/telegram/TELEGRAM_02_Intraday.png) · [alert](documentation/images/telegram/TELEGRAM_03_Alert.png) (cuplikan chat uji dengan data simulasi)
 
 Rancangan layar yang dapat diedit juga tersedia di [Figma](https://www.figma.com/design/IXMuveVYrGq41skubzCxwl). Gambar dashboard pada repo berasal dari QA aplikasi lokal dan menampilkan data simulasi.
 

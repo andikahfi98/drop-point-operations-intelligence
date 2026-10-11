@@ -32,4 +32,18 @@ Bot masuk melalui `POST /api/chat` dengan kunci internal dan pembatasan chat reg
 
 Pada uji format terakhir, **tujuh pratinjau** berhasil diterima di chat Telegram Regional Manager: tiga bagian laporan harian, tiga bagian intraday, dan satu alert skenario `WASPADA → KRITIS`. Pengiriman itu adalah pratinjau langsung melalui Bot API, bukan bukti bahwa jadwal n8n sudah memicu ketujuhnya. Kelima workflow tercatat aktif pada instalasi lokal saat pengujian; untuk memastikan eksekusi terjadwal tertentu, periksa riwayat eksekusi n8n pada tanggal dan jam terkait.
 
-Chat Telegram juga memperlihatkan balasan insight AI dengan bagian temuan dan langkah. Screenshot langsung dari chat sudah ditinjau untuk memeriksa format, tetapi belum tersimpan di repositori karena alat tangkapan layar belum berhasil menyimpan berkas. Gambar [otomasi dan AI](images/PORTOFOLIO_06_Automasi_dan_AI.png) adalah visual portofolio, bukan screenshot pesan Telegram. Setelah cuplikan aman tersimpan, letakkan di `documentation/images/telegram/` dan tautkan dari bagian ini tanpa menyertakan daftar chat, chat ID, token, atau informasi pribadi.
+Tiga cuplikan berikut diambil langsung dari chat uji. Setiap cuplikan menampilkan satu bagian pesan, bukan keseluruhan rangkaian laporan. Label `UJI FORMAT` dan tanggal simulasi dipertahankan agar contoh tidak terbaca sebagai laporan produksi atau bukti jadwal n8n.
+
+**Laporan harian, bagian detail DP Bekasi.** Tampilan memisahkan metrik hari ini, bulan berjalan, dan tindakan.
+
+![Cuplikan laporan harian Telegram dengan data simulasi](images/telegram/TELEGRAM_01_Laporan_Harian.png)
+
+**Laporan intraday, bagian detail DP Jakarta Timur.** Status, paket, pengiriman, dan tindak lanjut terlihat dalam satu pesan.
+
+![Cuplikan laporan intraday Telegram dengan data simulasi](images/telegram/TELEGRAM_02_Intraday.png)
+
+**Alert uji DP Bekasi.** Pesan memperlihatkan perubahan status, indikator kritis, PIC, dan langkah eskalasi.
+
+![Cuplikan alert Telegram dengan data simulasi](images/telegram/TELEGRAM_03_Alert.png)
+
+Chat Telegram juga memperlihatkan balasan insight AI dengan bagian temuan dan langkah. Ketiga gambar di atas khusus untuk format laporan dan alert; [gambar otomasi dan AI](images/PORTOFOLIO_06_Automasi_dan_AI.png) adalah visual portofolio sistem.

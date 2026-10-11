@@ -28,6 +28,8 @@ Lima workflow n8n lokal menangani generator data, laporan intraday, laporan hari
 
 ![Otomasi dan AI](images/PORTOFOLIO_06_Automasi_dan_AI.png)
 
+Contoh hasil Telegram dari chat uji tersedia bersama gambar website: [laporan harian](images/telegram/TELEGRAM_01_Laporan_Harian.png), [laporan intraday](images/telegram/TELEGRAM_02_Intraday.png), dan [alert](images/telegram/TELEGRAM_03_Alert.png). Ketiganya memakai data simulasi dan diberi label uji format.
+
 ## Batas prototipe
 
 Docker menjalankan PostgreSQL, FastAPI, dan n8n; frontend Vite berjalan pada host lokal. Ngrok memberi HTTPS untuk webhook Telegram dan hanya aktif selama tunnel serta laptop hidup. Repo publik tidak membawa volume database, workbook sumber, secret, atau password. GitHub Pages kelak hanya dapat menayangkan frontend statis; API dan database membutuhkan hosting terpisah. Lihat [PRD](PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md) untuk kebutuhan dan pekerjaan sebelum produksi.

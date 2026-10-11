@@ -17,6 +17,8 @@ Semua angka dan tanggal operasional pada proyek ini adalah **data simulasi**. Im
 
 [Studi kasus](images/PORTOFOLIO_01_Studi_Kasus.png) · [Proses operasional](images/PORTOFOLIO_02_Proses_Operasional.png) · [Arsitektur](images/PORTOFOLIO_03_Arsitektur_Sistem.png) · [Dashboard regional](images/PORTOFOLIO_04_Dashboard_Regional.png) · [Detail Drop Point](images/PORTOFOLIO_05_Detail_Drop_Point.png) · [Otomasi dan AI](images/PORTOFOLIO_06_Automasi_dan_AI.png).
 
-Sumber gambar yang dapat diedit berada di [`portfolio/portfolio.html`](portfolio/portfolio.html). `portfolio/render.mjs` membuat ulang keenam PNG di `images/`; halaman dashboard pada gambar adalah data simulasi. Gambar Telegram dari chat asli belum disimpan sebagai berkas di repo; dokumentasi Telegram menjelaskan format pesan yang sudah diperiksa di chat lokal tanpa mempublikasikan identitas penerima.
+Contoh pesan Telegram dari chat uji disimpan bersama gambar website: [laporan harian](images/telegram/TELEGRAM_01_Laporan_Harian.png), [intraday](images/telegram/TELEGRAM_02_Intraday.png), dan [alert](images/telegram/TELEGRAM_03_Alert.png). Ketiganya adalah pratinjau format dengan data simulasi, bukan bukti pemicu terjadwal. Penjelasan tiap pesan ada di [Telegram dan reporting](TELEGRAM_DAN_REPORTING.md).
+
+Sumber gambar portofolio website yang dapat diedit berada di [`portfolio/portfolio.html`](portfolio/portfolio.html). `portfolio/render.mjs` membuat ulang keenam PNG website di `images/`; tiga screenshot Telegram diambil langsung dari chat uji dan tidak dibuat ulang oleh skrip itu.
 
 Catatan pribadi, riwayat instruksi lama, dan cara masuk ke layanan lokal ada di `documentation/local/` pada laptop proyek dan diabaikan Git. Berkas kredensial demo tetap di folder utama laptop sesuai kebutuhan pemilik proyek.
