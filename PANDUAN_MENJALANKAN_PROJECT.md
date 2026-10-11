@@ -101,7 +101,11 @@ Endpoint `/internal/reports/summary?include_insights=true` dan `/internal/report
 
 Pada bot Telegram, Regional Manager dapat mengetik `Beri insight dan solusi dari laporan harian` atau `Analisis laporan untuk DP [nama]`. Bot membaca laporan terbaru hanya untuk DP dalam grant regional. Kata `harian` atau `hari ini` memilih laporan harian; selain itu bot memakai ringkasan intraday. Ini memakai data simulasi lokal, bukan pencarian web.
 
-Jika workflow 02–03 yang aktif dibuat sebelum fitur insight ini, perbarui **workflow yang sudah ada** setelah Docker kembali sehat: pada masing-masing node `HTTP Request`, tambahkan `?include_insights=true` ke URL; pada node `Code in JavaScript`, salin kode terbaru dari node bernama sama di `n8n/workflows/02_intraday_report.json` dan `n8n/workflows/03_daily_report.json`. Simpan lalu periksa satu eksekusi manual tanpa node pengirim Telegram untuk memastikan bagian `INSIGHT AI & SARAN TINDAKAN` atau `INSIGHT OPERASIONAL & SARAN TINDAKAN` muncul. Jangan mengganti `Schedule Trigger`, credential Telegram, atau chat tujuan. File JSON di GitHub adalah contoh aman dan tidak memperbarui workflow aktif secara otomatis.
+Pesan laporan intraday dan harian diawali ringkasan seluruh DP serta total operasional, lalu rincian DP yang perlu perhatian dikirim pada bagian berikutnya. Alert menampilkan komponen kritis, angka pendukung, PIC, dan tindak lanjut. Setiap pesan diberi label data simulasi; ikon menunjukkan status dan jenis metrik. Format sumber berada di `n8n/formatters/`, dan `scripts/sync_report_formatters.py` menyalinnya ke contoh workflow publik.
+
+Jika memasang format pada instalasi n8n lain, perbarui node `Code in JavaScript` pada **workflow yang sudah ada** dengan formatter yang sesuai. Simpan dan publikasikan workflow, lalu periksa pratinjau node Code tanpa menjalankan node Telegram. Pertahankan `Schedule Trigger`, URL laporan, credential, dan chat tujuan. File JSON di GitHub adalah contoh aman dan tidak memperbarui workflow aktif secara otomatis.
+
+Untuk pembaruan lokal melalui CLI, `scripts/prepare_local_n8n_report_update.py` dapat mengambil ekspor privat workflow yang aktif dan mengganti hanya isi tiga node Code. Simpan hasilnya di `backup/` yang diabaikan Git. Pada mode n8n biasa, proses impor menonaktifkan workflow yang diimpor; publikasikan lagi workflow 02–04 dan mulai ulang n8n sebelum menganggap pembaruan selesai.
 
 ## 5. Pengujian dan pemecahan masalah
 

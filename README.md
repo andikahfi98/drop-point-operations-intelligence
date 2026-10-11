@@ -86,6 +86,7 @@ Repositori ini memprioritaskan keterbacaan arsitektur dan kode untuk portofolio.
 | `sql/` | Skema, migrasi, view analitik, query verifikasi |
 | `frontend/` | React/Vite dashboard dan uji browser |
 | `n8n/workflows/` | Ekspor workflow publik yang disanitasi |
+| `n8n/formatters/` | Sumber format pesan Telegram untuk laporan intraday, harian, dan alert |
 | `tests/` | Uji integrasi autentikasi dan batas akses |
 | `docs/portfolio/` | Sumber gambar portofolio yang dapat diedit |
 | `PORTOFOLIO_*.png` | Enam gambar siap dibagikan |
