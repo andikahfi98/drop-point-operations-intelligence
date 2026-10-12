@@ -11,6 +11,8 @@ Panduan ini mengikuti urutan pemakaian demo lokal, dari login hingga membaca lap
 3. Buka `AKUN_DAN_PASSWORD_DEMO.txt` di folder utama proyek **pada laptop pemilik**. Ambil password yang cocok dengan email tersebut, lalu isi kolom **Password**. File ini tidak ada di GitHub dan tidak disalin ke PDF publik.
 4. Pilih **Masuk**. Jika muncul permintaan mengganti password, isi password saat ini dan password baru, simpan, lalu login ulang. Perbarui catatan password pribadi di file lokal itu.
 
+![Halaman login dashboard - kolom email dan password](images/PORTOFOLIO_00_Login.png)
+
 | Peran | Email demo |
 | --- | --- |
 | Regional Manager Jabodetabek | `regional.jabodetabek@demo.local` |

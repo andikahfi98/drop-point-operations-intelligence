@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from PIL import Image
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
@@ -11,6 +12,7 @@ from reportlab.pdfgen import canvas
 DOCS = Path(__file__).resolve().parents[1]
 OUT = DOCS / "PANDUAN_PENGGUNA_STEP_BY_STEP.pdf"
 W, H = 960, 540
+TOTAL_PAGES = 8
 RED = colors.HexColor("#D80F20")
 NAVY = colors.HexColor("#1B263A")
 MUTED = colors.HexColor("#64748B")
@@ -55,8 +57,8 @@ def card(c, x, y, width, height, fill=WHITE, stroke=LINE, radius=14):
     c.roundRect(x, y, width, height, radius, fill=1, stroke=1)
 
 
-def image_fit(c, path, x, y, width, height):
-    reader = ImageReader(str(path))
+def image_fit(c, path, x, y, width, height, crop=None):
+    reader = ImageReader(Image.open(path).crop(crop) if crop else str(path))
     iw, ih = reader.getSize()
     scale = min(width / iw, height / ih)
     dw, dh = iw * scale, ih * scale
@@ -77,7 +79,7 @@ def base(c, number, eyebrow, title, subtitle=None):
     c.setStrokeColor(LINE)
     c.line(50, 42, 910, 42)
     txt(c, "Panduan pengguna  |  data simulasi  |  tanpa password di PDF", 50, 24, 9, MUTED)
-    txt(c, f"{number:02d} / 07", 867, 24, 9, RED, True)
+    txt(c, f"{number:02d} / {TOTAL_PAGES:02d}", 867, 24, 9, RED, True)
 
 
 def step(c, number, title, body, x, y, width, size=11):
@@ -110,11 +112,18 @@ txt(c, "03  Laporan dan Telegram", 68, 118, 11, NAVY, True)
 card(c, 505, 98, 405, 338, WHITE, LINE, 14)
 image_fit(c, DOCS / "images/PORTOFOLIO_04_Dashboard_Regional.png", 515, 108, 385, 318)
 txt(c, "Demo lokal  |  enam Drop Point  |  data simulasi", 50, 35, 10, MUTED)
-txt(c, "01 / 07", 866, 35, 10, RED, True)
+txt(c, f"01 / {TOTAL_PAGES:02d}", 866, 35, 10, RED, True)
 c.showPage()
 
-# 2. Login
-base(c, 2, "Langkah 01", "Masuk ke website", "Gunakan satu akun demo sesuai peran. Password hanya dibaca dari file lokal pada laptop pemilik proyek.")
+# 2. Login screenshot
+base(c, 2, "Langkah 01", "Kenali halaman login", "Buka dashboard lokal. Kolom Email dan Password ada di sisi kanan, di atas tombol Masuk.")
+card(c, 50, 71, 860, 325)
+image_fit(c, DOCS / "images/PORTOFOLIO_00_Login.png", 61, 82, 838, 303, crop=(0, 150, 1440, 750))
+txt(c, "Cuplikan halaman login  |  kolom sengaja kosong agar tidak menampilkan kredensial", 50, 55, 9, MUTED)
+c.showPage()
+
+# 3. Login steps
+base(c, 3, "Langkah 01", "Masuk ke website", "Gunakan satu akun demo sesuai peran. Password hanya dibaca dari file lokal pada laptop pemilik proyek.")
 card(c, 50, 105, 423, 285)
 y = 360
 y = step(c, 1, "Buka dashboard", "Masuk ke http://127.0.0.1:5173/ setelah Docker dan frontend aktif.", 67, y, 386)
@@ -142,8 +151,8 @@ for i, (label, email) in enumerate(accounts):
 txt(c, "Password tidak dicetak pada panduan publik ini.", 50, 82, 10, RED, True)
 c.showPage()
 
-# 3. Regional
-base(c, 3, "Langkah 02", "Lihat dashboard Regional Manager", "Akun regional membaca seluruh Drop Point yang diberikan oleh grant wilayahnya.")
+# 4. Regional
+base(c, 4, "Langkah 02", "Lihat dashboard Regional Manager", "Akun regional membaca seluruh Drop Point yang diberikan oleh grant wilayahnya.")
 card(c, 50, 83, 563, 309)
 image_fit(c, DOCS / "images/PORTOFOLIO_04_Dashboard_Regional.png", 58, 91, 547, 293)
 card(c, 629, 83, 281, 309)
@@ -154,8 +163,8 @@ y = step(c, 3, "Enam tab detail", "Operasi; Paket; Pengiriman; Seller & Pendapat
 y = step(c, 4, "Laporan", "Gunakan filter dan unduh CSV untuk DP dalam akses regional.", 646, y, 247, 10.5)
 c.showPage()
 
-# 4. DP Manager
-base(c, 4, "Langkah 03", "Lihat dashboard DP Manager", "Setelah login, DP Manager diarahkan ke DP Saya. Detail dan laporan dibatasi pada lokasi miliknya.")
+# 5. DP Manager
+base(c, 5, "Langkah 03", "Lihat dashboard DP Manager", "Setelah login, DP Manager diarahkan ke DP Saya. Detail dan laporan dibatasi pada lokasi miliknya.")
 card(c, 50, 83, 563, 309)
 image_fit(c, DOCS / "images/PORTOFOLIO_05_Detail_Drop_Point.png", 58, 91, 547, 293)
 card(c, 629, 83, 281, 309)
@@ -166,8 +175,8 @@ y = step(c, 3, "Telusuri isu", "Cari resi atau seller; baca umur paket, alasan, 
 y = step(c, 4, "Buka Laporan", "Data DP lain tidak muncul. API juga menolak URL detail lintas DP.", 646, y, 247, 10.5)
 c.showPage()
 
-# 5. Telegram
-base(c, 5, "Langkah 04", "Gunakan bot Telegram regional", "Bot dipakai langsung di Telegram oleh Regional Manager, bukan lewat menu website.")
+# 6. Telegram
+base(c, 6, "Langkah 04", "Gunakan bot Telegram regional", "Bot dipakai langsung di Telegram oleh Regional Manager, bukan lewat menu website.")
 card(c, 50, 88, 496, 304)
 y = 359
 y = step(c, 1, "Pastikan layanan aktif", "Docker dan n8n harus hidup. Tunnel ngrok dan webhook Telegram harus menunjuk ke n8n lokal.", 67, y, 460)
@@ -179,8 +188,8 @@ image_fit(c, DOCS / "images/telegram/TELEGRAM_01_Laporan_Harian.png", 574, 101, 
 txt(c, "Contoh laporan harian - uji format, data simulasi", 562, 67, 9, MUTED)
 c.showPage()
 
-# 6. Reports
-base(c, 6, "Langkah 05", "Baca laporan dan alert", "Jadwal di bawah adalah konfigurasi lokal yang terakhir dicatat. Periksa riwayat n8n untuk memastikan pengiriman aktual.")
+# 7. Reports
+base(c, 7, "Langkah 05", "Baca laporan dan alert", "Jadwal di bawah adalah konfigurasi lokal yang terakhir dicatat. Periksa riwayat n8n untuk memastikan pengiriman aktual.")
 card(c, 50, 276, 860, 117)
 rows = [
     ("Intraday", "10.00 / 12.00 / 14.00 / 16.00 WIB", "Status DP, total, isu, insight dan tindakan"),
@@ -203,8 +212,8 @@ txt(c, "Cuplikan intraday - uji format", 64, 55, 9, MUTED)
 txt(c, "Cuplikan alert - skenario uji", 487, 55, 9, MUTED)
 c.showPage()
 
-# 7. Checks
-base(c, 7, "Langkah 06", "Cek akses dan masalah umum", "Dua peran memakai website yang sama, tetapi melihat cakupan data yang berbeda.")
+# 8. Checks
+base(c, 8, "Langkah 06", "Cek akses dan masalah umum", "Dua peran memakai website yang sama, tetapi melihat cakupan data yang berbeda.")
 card(c, 50, 262, 860, 131)
 txt(c, "Halaman / kanal", 68, 365, 10, MUTED, True)
 txt(c, "Regional Manager", 398, 365, 10, MUTED, True)
