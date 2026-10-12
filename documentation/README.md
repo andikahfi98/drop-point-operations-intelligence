@@ -2,16 +2,25 @@
 
 Semua angka dan tanggal operasional pada proyek ini adalah **data simulasi**. Implementasi berjalan lokal di laptop proyek; repositori publik berisi kode, contoh workflow yang disanitasi, panduan, dan gambar portofolio, tetapi tidak berisi database terisi, file `.env`, credential, atau password.
 
-| Mulai dari | Isi |
+## Urutan membaca
+
+| Urutan | Dokumen | Isi |
+| --- | --- | --- |
+| 1 | [Panduan pengguna langkah demi langkah (PDF)](PANDUAN_PENGGUNA_STEP_BY_STEP.pdf) | Login, email demo, password lokal, tampilan Regional/DP Manager, laporan, dan Telegram |
+| 2 | [Versi teks panduan pengguna](PANDUAN_PENGGUNA_STEP_BY_STEP.md) | Isi PDF dalam format yang mudah diedit dan ditelusuri |
+| 3 | [Panduan menjalankan proyek](PANDUAN_MENJALANKAN_PROJECT.md) | Menyalakan Docker, API, ngrok, n8n, dashboard, serta pemecahan masalah |
+| 4 | [Sistem dan alur operasional](SISTEM_DAN_ALUR.md) | Proses parcel, peran, arsitektur, dashboard, dan hubungan antar-komponen |
+| 5 | [Telegram dan reporting](TELEGRAM_DAN_REPORTING.md) | Bot regional, laporan harian, intraday, alert, insight AI, format, dan batas pengujian |
+
+## Referensi teknis
+
+| Dokumen | Isi |
 | --- | --- |
-| [Panduan menjalankan proyek](PANDUAN_MENJALANKAN_PROJECT.md) | Urutan Docker, API, ngrok, Telegram, dashboard, n8n, pengujian, dan pemecahan masalah |
-| [Sistem dan alur operasional](SISTEM_DAN_ALUR.md) | Proses parcel, peran, arsitektur, dashboard, dan hubungan antar-komponen |
-| [Telegram dan reporting](TELEGRAM_DAN_REPORTING.md) | Bot regional, laporan harian, intraday, alert, insight AI, format, dan batas pengujian |
 | [PRD](PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md) | Tujuan produk, kebutuhan, persona, keamanan, serta kriteria penerimaan |
 | [Model database](DATABASE_MODEL.md) | Entitas, lifecycle shipment, origin/destination, kepemilikan isu, dan migrasi |
 | [API dan hak akses](AUTH_DASHBOARD_API.md) | Endpoint dashboard, autentikasi, pembatasan DP/region, dan endpoint internal |
 | [Frontend](FRONTEND.md) | Halaman dashboard, perilaku sesi, QA, dan batas publikasi statis |
-| [Akun demo](DEMO_ACCOUNTS.md) | Email demo; password hanya di file lokal yang diabaikan Git |
+| [Akun demo](DEMO_ACCOUNTS.md) | Daftar email demo; password hanya di file lokal yang diabaikan Git |
 
 ## Gambar portofolio
 

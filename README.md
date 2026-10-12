@@ -93,6 +93,7 @@ Repositori ini memprioritaskan keterbacaan arsitektur dan kode untuk portofolio.
 
 ## Dokumentasi dan gambar portofolio
 
+- [Panduan pengguna langkah demi langkah (PDF)](documentation/PANDUAN_PENGGUNA_STEP_BY_STEP.pdf) — mulai dari login, lalu tampilan Regional Manager, DP Manager, dan Telegram.
 - [Indeks dokumentasi](documentation/README.md) — peta semua panduan dan gambar.
 - [Panduan lengkap menjalankan sistem](documentation/PANDUAN_MENJALANKAN_PROJECT.md)
 - [PRD terbaru](documentation/PRD_DROP_POINT_OPERATIONS_INTELLIGENCE.md)

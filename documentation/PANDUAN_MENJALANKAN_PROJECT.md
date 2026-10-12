@@ -2,6 +2,8 @@
 
 Panduan ini untuk **instalasi lokal yang sudah ada di laptop proyek**. Database demo dan credential lokal tersimpan di luar Git. Jika memulai dari clone GitHub yang masih kosong, baca bagian “Instalasi baru” di akhir sebelum berharap dashboard menampilkan data.
 
+Untuk urutan penggunaan setelah layanan menyala, mulai dari [panduan pengguna langkah demi langkah](PANDUAN_PENGGUNA_STEP_BY_STEP.pdf): isi email dan password, lihat akses Regional/DP Manager, lalu gunakan Telegram.
+
 ## Peta layanan
 
 | Layanan | Alamat lokal | Fungsi |
